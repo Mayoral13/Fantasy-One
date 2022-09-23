@@ -1,6 +1,5 @@
 const League = artifacts.require("League");
 const Baller = artifacts.require("Baller");
-const Signup = artifacts.require("Signup");
 const Fan = artifacts.require("Fan");
 const Squad = artifacts.require("Squad");
 

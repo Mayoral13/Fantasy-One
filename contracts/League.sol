@@ -1,5 +1,4 @@
 pragma solidity ^0.8.11;
-import "./ISignup.sol";
 contract League{
     
     struct league{

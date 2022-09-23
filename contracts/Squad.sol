@@ -18,3 +18,5 @@ _mint(msg.sender,100);
 swapped[msg.sender] = true;
 }
 }
+// "0x4B053353c82AFCc9e8e22eE538372626880a81f4"
+// "0x7772deced5b5a4f083fe966656a9d443c91d836d997ad06a15442bce38873b59"

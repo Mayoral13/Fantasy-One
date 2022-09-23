@@ -1,4 +1,5 @@
 pragma solidity ^0.8.11;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract League{
     
     struct league{
@@ -7,16 +8,20 @@ contract League{
         uint rewards;
         bytes32 key;
         uint members;
+        uint rewardbalance;
     }
     struct LeaderBoard{
         address[]leagueMembers;
         uint[]leagueScores;
         bytes32 key;
     }
+    constructor(address _ifan){
+        fan = _ifan;
+    }
     //function ViewLeaderBoard(bytes32 _key)public view returns(address[]memory,uint[]memory){
 
    // } ///TO DO LEADERBOARD
-
+    address public fan;
     uint private totalPlayers;
     address[]private globalLeague;
     mapping(address => bool)private isPlayer;
@@ -36,13 +41,29 @@ contract League{
         leagueKeys[msg.sender].push(key);
         leaguesOwned[msg.sender][_name] = key;
         leagues[key].key = key;
-        leagues[key].rewards = _rewards;
         leagueMembers[msg.sender][key] = true;
+        leagues[key].rewards = _rewards;
         leagues[key].members++;
     }
     function SetLeagueReward(uint _rewards,bytes32 _key)public{
+        IERC20 ifan = IERC20(fan);
+        require(ifan.balanceOf(msg.sender) >= _rewards,"Insufficient Balance");
+        require(leagues[_key].rewards != 0,"Change rewards first");
+        require(_rewards >= leagues[_key].rewards,"Rewards must be greater than set");
         require(msg.sender == leagues[_key].owner,"You are not the admin");
-        leagues[_key].rewards = _rewards;
+        ifan.transferFrom(msg.sender,address(this),_rewards);
+        leagues[_key].rewardbalance += _rewards;
+    }
+    function ChangeLeagueReward(uint _rewards,bytes32 _key)public{
+         require(msg.sender == leagues[_key].owner,"You are not the admin");
+         leagues[_key].rewards = _rewards;
+    }
+    function ClaimRewards(bytes32 _key)public{ //////////////////////////UNFINISHED PUT LEADERBOARD BROOOOO
+        require(leagues[_key].rewardbalance >= leagues[_key].rewards);
+        //REQUIRE MAKE FIRST IN LEADERBOARD
+        IERC20 ifan = IERC20(fan);
+        leagues[_key].rewardbalance -= leagues[_key].rewards;
+        ifan.transfer(msg.sender,leagues[_key].rewards);
     } 
     function ViewLeagueKey()public view returns(bytes32[]memory){
         require(isPlayer[msg.sender] == true,"Signup First");  

@@ -5,4 +5,10 @@ constructor()
 ERC20("FAN-TOKEN","FAN"){
     _mint(msg.sender,100000);
 }
+function Balance()external view returns(uint){
+    return balanceOf(msg.sender);
+}
+function Exchange(address _to,uint _amount)external{
+    transfer(_to,_amount);
+}
 }

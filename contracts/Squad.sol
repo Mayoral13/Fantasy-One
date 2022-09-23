@@ -9,7 +9,7 @@ ERC20("SQUAD-TOKEN","SQD"){
 address public fan;
 mapping(address => bool)private swapped;
 
-function Swap()public{
+function Swap()public{//APPROVE TRANSFERFROM  UI
 IERC20 ifan = IERC20(fan);
 require(swapped[msg.sender] == false,"You have already swapped");
 require(ifan.balanceOf(msg.sender) >= 1000,"Insufficient Balance");
@@ -18,5 +18,6 @@ _mint(msg.sender,100);
 swapped[msg.sender] = true;
 }
 }
-// "0x4B053353c82AFCc9e8e22eE538372626880a81f4"
-// "0x7772deced5b5a4f083fe966656a9d443c91d836d997ad06a15442bce38873b59"
+
+// "0x4e2063c72Aa4D17f6FEd4870C8ff5F95DdC736de"
+//'0xc7c720dca2b4bc7be225246d79ada4acc9a792f0815d09b2e5970590e469ed2b'

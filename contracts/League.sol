@@ -18,6 +18,18 @@ contract League{
     constructor(address _ifan){
         fan = _ifan;
     }
+    modifier IsPlayer(){
+        require(isPlayer[msg.sender] == true,"Signup First"); 
+        _;
+    }
+    modifier IsAdmin(bytes32 _key){
+       require(msg.sender == leagues[_key].owner,"You are not the admin");
+       _; 
+    }
+    modifier IsMember(bytes32 _key){
+        require(leagueMembers[msg.sender][_key] == true,"Not a Member");
+        _;
+    }
     //function ViewLeaderBoard(bytes32 _key)public view returns(address[]memory,uint[]memory){
 
    // } ///TO DO LEADERBOARD
@@ -32,8 +44,7 @@ contract League{
     mapping(address => mapping(bytes32 => bool))private leagueMembers;
     mapping(address => mapping(string => bytes32))private leaguesOwned; 
     
-    function CreateLeague(string memory _name,uint _rewards)public{
-        require(isPlayer[msg.sender] == true,"Signup First");  
+    function CreateLeague(string memory _name,uint _rewards)IsPlayer public{ 
         bytes32 key;
         key = _generateKey(_name,msg.sender,block.timestamp);
         leagues[key].owner = msg.sender;
@@ -45,52 +56,43 @@ contract League{
         leagues[key].rewards = _rewards;
         leagues[key].members++;
     }
-    function SetLeagueReward(uint _rewards,bytes32 _key)public{
+    function SetLeagueReward(uint _rewards,bytes32 _key)IsPlayer IsAdmin(_key) public{/////APPROVE WITH TRANSFERFROM UI
         IERC20 ifan = IERC20(fan);
         require(ifan.balanceOf(msg.sender) >= _rewards,"Insufficient Balance");
         require(leagues[_key].rewards != 0,"Change rewards first");
         require(_rewards >= leagues[_key].rewards,"Rewards must be greater than set");
-        require(msg.sender == leagues[_key].owner,"You are not the admin");
         ifan.transferFrom(msg.sender,address(this),_rewards);
         leagues[_key].rewardbalance += _rewards;
     }
-    function ChangeLeagueReward(uint _rewards,bytes32 _key)public{
-         require(msg.sender == leagues[_key].owner,"You are not the admin");
+    function ChangeLeagueReward(uint _rewards,bytes32 _key)IsPlayer IsAdmin(_key) public{
          leagues[_key].rewards = _rewards;
     }
-    function ClaimRewards(bytes32 _key)public{ //////////////////////////UNFINISHED PUT LEADERBOARD BROOOOO
+    function ClaimRewards(bytes32 _key)IsPlayer IsMember(_key) public{ //////////////////////////UNFINISHED PUT LEADERBOARD BROOOOO
         require(leagues[_key].rewardbalance >= leagues[_key].rewards);
         //REQUIRE MAKE FIRST IN LEADERBOARD
         IERC20 ifan = IERC20(fan);
         leagues[_key].rewardbalance -= leagues[_key].rewards;
         ifan.transfer(msg.sender,leagues[_key].rewards);
     } 
-    function ViewLeagueKey()public view returns(bytes32[]memory){
-        require(isPlayer[msg.sender] == true,"Signup First");  
+    function ViewLeagueKey()IsPlayer public view returns(bytes32[]memory){  
         require(leagueKeys[msg.sender].length != 0,"Empty");
         return leagueKeys[msg.sender];
     }
-    function ViewSpecificKey(string memory name)public view returns(bytes32){
-        require(isPlayer[msg.sender] == true,"Signup First");  
+    function ViewSpecificKey(string memory name)IsPlayer public view returns(bytes32){  
         require(leaguesOwned[msg.sender][name] != 0,"Empty");
         return leaguesOwned[msg.sender][name];
     } 
-    function JoinLeague(bytes32 _key)public{
-    require(isPlayer[msg.sender] == true,"Signup First");  
+    function JoinLeague(bytes32 _key)IsPlayer public{
      require(_key == leagues[_key].key);
      require(leagueMembers[msg.sender][_key] == false,"Already a Member");
      leagues[_key].members++;
      leagueMembers[msg.sender][_key] = true;
      leaguesIN[msg.sender].push(_key);
     }
-    function ViewLeague(bytes32 _key)public view returns(league memory){
-    require(isPlayer[msg.sender] == true,"Signup First");  
-     require(leagueMembers[msg.sender][_key] == true,"Not a Member");
+    function ViewLeague(bytes32 _key)IsPlayer IsMember(_key) public view returns(league memory){  
      return leagues[_key];
     }
-    function LeaveLeague(bytes32 _key)public{
-     require(isPlayer[msg.sender] == true,"Signup First");    
-    require(leagueMembers[msg.sender][_key] == true,"Not a Member");
+    function LeaveLeague(bytes32 _key)IsPlayer IsMember(_key) public{   
         for(uint j = 0; j < leaguesIN[msg.sender].length; j++){
             if(leaguesIN[msg.sender][j] == _key){
               leaguesIN[msg.sender].pop();
@@ -108,9 +110,6 @@ contract League{
      globalLeague.push(msg.sender);
      totalPlayers++;
      isPlayer[msg.sender] = true; 
-    }
-    function IsPlayer()public view returns(bool){
-        return isPlayer[msg.sender];
     }
     function TotalPlayers()public view returns(uint){
         return totalPlayers;

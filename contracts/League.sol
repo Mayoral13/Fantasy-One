@@ -1,6 +1,7 @@
 pragma solidity ^0.8.11;
 import "./ISignup.sol";
 contract League{
+    
     struct league{
         address owner;
         string name;
@@ -16,11 +17,10 @@ contract League{
     //function ViewLeaderBoard(bytes32 _key)public view returns(address[]memory,uint[]memory){
 
    // } ///TO DO LEADERBOARD
-    ISignup public isignup;
-    constructor(address _signup){
-    isignup = ISignup(_signup);
-    }
-    
+
+    uint private totalPlayers;
+    address[]private globalLeague;
+    mapping(address => bool)private isPlayer;
     mapping(bytes32 => league)private leagues;
     mapping(address => bytes32[])private leaguesIN;
     mapping(address => bytes32[])private leagueKeys;
@@ -29,7 +29,7 @@ contract League{
     mapping(address => mapping(string => bytes32))private leaguesOwned; 
     
     function CreateLeague(string memory _name,uint _rewards)public{
-        require(isignup.IsPlayer() == true,"Signup First");
+        require(isPlayer[msg.sender] == true,"Signup First");  
         bytes32 key;
         key = _generateKey(_name,msg.sender,block.timestamp);
         leagues[key].owner = msg.sender;
@@ -46,17 +46,17 @@ contract League{
         leagues[_key].rewards = _rewards;
     } 
     function ViewLeagueKey()public view returns(bytes32[]memory){
-         require(isignup.IsPlayer() == true,"Signup First");
+        require(isPlayer[msg.sender] == true,"Signup First");  
         require(leagueKeys[msg.sender].length != 0,"Empty");
         return leagueKeys[msg.sender];
     }
     function ViewSpecificKey(string memory name)public view returns(bytes32){
-         require(isignup.IsPlayer() == true,"Signup First");
+        require(isPlayer[msg.sender] == true,"Signup First");  
         require(leaguesOwned[msg.sender][name] != 0,"Empty");
         return leaguesOwned[msg.sender][name];
     } 
     function JoinLeague(bytes32 _key)public{
-    require(isignup.IsPlayer() == true,"Signup First");
+    require(isPlayer[msg.sender] == true,"Signup First");  
      require(_key == leagues[_key].key);
      require(leagueMembers[msg.sender][_key] == false,"Already a Member");
      leagues[_key].members++;
@@ -64,12 +64,12 @@ contract League{
      leaguesIN[msg.sender].push(_key);
     }
     function ViewLeague(bytes32 _key)public view returns(league memory){
-    require(isignup.IsPlayer() == true,"Signup First");
+    require(isPlayer[msg.sender] == true,"Signup First");  
      require(leagueMembers[msg.sender][_key] == true,"Not a Member");
      return leagues[_key];
     }
     function LeaveLeague(bytes32 _key)public{
-     require(isignup.IsPlayer() == true,"Signup First");    
+     require(isPlayer[msg.sender] == true,"Signup First");    
     require(leagueMembers[msg.sender][_key] == true,"Not a Member");
         for(uint j = 0; j < leaguesIN[msg.sender].length; j++){
             if(leaguesIN[msg.sender][j] == _key){
@@ -82,6 +82,21 @@ contract League{
     
     function _generateKey(string memory _name,address _owner,uint _time)private pure returns(bytes32){
     return bytes32(keccak256(abi.encodePacked(_name,_owner,_time)));
+    }
+     function SignUp()public{
+    require(isPlayer[msg.sender] == false,"Already a player");
+     globalLeague.push(msg.sender);
+     totalPlayers++;
+     isPlayer[msg.sender] = true; 
+    }
+    function IsPlayer()public view returns(bool){
+        return isPlayer[msg.sender];
+    }
+    function TotalPlayers()public view returns(uint){
+        return totalPlayers;
+    }
+    function Global()public view returns(address[]memory){
+        return globalLeague;
     }
    
 }

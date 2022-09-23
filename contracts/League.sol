@@ -8,14 +8,23 @@ contract League{
         bytes32 key;
         uint members;
     }
+    struct LeaderBoard{
+        address[]leagueMembers;
+        uint[]leagueScores;
+        bytes32 key;
+    }
+    //function ViewLeaderBoard(bytes32 _key)public view returns(address[]memory,uint[]memory){
+
+   // } ///TO DO LEADERBOARD
     ISignup public isignup;
     constructor(address _signup){
     isignup = ISignup(_signup);
     }
+    
     mapping(bytes32 => league)private leagues;
-    mapping(address => mapping(bytes32 => uint))private points;
     mapping(address => bytes32[])private leaguesIN;
     mapping(address => bytes32[])private leagueKeys;
+    mapping(bytes32 => LeaderBoard)private leaderboards;
     mapping(address => mapping(bytes32 => bool))private leagueMembers;
     mapping(address => mapping(string => bytes32))private leaguesOwned; 
     
@@ -32,6 +41,10 @@ contract League{
         leagueMembers[msg.sender][key] = true;
         leagues[key].members++;
     }
+    function SetLeagueReward(uint _rewards,bytes32 _key)public{
+        require(msg.sender == leagues[_key].owner,"You are not the admin");
+        leagues[_key].rewards = _rewards;
+    } 
     function ViewLeagueKey()public view returns(bytes32[]memory){
          require(isignup.IsPlayer() == true,"Signup First");
         require(leagueKeys[msg.sender].length != 0,"Empty");

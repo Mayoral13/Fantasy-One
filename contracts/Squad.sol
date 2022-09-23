@@ -15,7 +15,5 @@ require(ifan.Balance() >= 1000,"Insufficient");
 ifan.Exchange(address(this),1000);
 _mint(msg.sender,100);
 swapped[msg.sender] = true;
-
-
 }
 }

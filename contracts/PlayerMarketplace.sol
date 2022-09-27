@@ -4,7 +4,9 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract PlayerMarketplace is ERC721,ERC721URIStorage{
+
+
+ contract PlayerMarketplace is ERC721,ERC721URIStorage{
     address public SQUAD;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenID;
@@ -70,7 +72,8 @@ contract PlayerMarketplace is ERC721,ERC721URIStorage{
     else if(_position == 3){
       Fowards.push(Player(Positions.Foward,id,_price,_tokenURI));
     }
-   _safeMint(address(this),id);
+   _mint(address(this),id);
+   players[id] = Player(Positions(_position),id,_price,_tokenURI);
    _setTokenURI(id,_tokenURI);
    AllPlayers.push(Player(Positions(_position),id,_price,_tokenURI));
     }
@@ -94,7 +97,7 @@ contract PlayerMarketplace is ERC721,ERC721URIStorage{
  function ViewAllFowards()public view returns(Player[]memory){
   return Fowards;
  }
- 
+ //TO DO TEAM SELECTION WITH TOKEN AND VIEW TEAM ACCORDING TO GAME MODE
  
 
 }

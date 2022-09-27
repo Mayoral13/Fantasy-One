@@ -11,9 +11,8 @@ contract League{
         uint rewardbalance;
     }
     struct LeaderBoard{
-        address[]leagueMembers;
-        uint[]leagueScores;
-        bytes32 key;
+        address[]members;
+        uint[]scores;
     }
     constructor(address _ifan){
         fan = _ifan;
@@ -34,6 +33,7 @@ contract League{
 
    // } ///TO DO LEADERBOARD
     address public fan;
+    uint8 private season = 1;
     uint private totalPlayers;
     address[]private globalLeague;
     mapping(address => bool)private isPlayer;
@@ -41,6 +41,7 @@ contract League{
     mapping(address => bytes32[])private leaguesIN;
     mapping(address => bytes32[])private leagueKeys;
     mapping(bytes32 => LeaderBoard)private leaderboards;
+    mapping(uint => LeaderBoard)private globalLeaderboard;
     mapping(address => mapping(bytes32 => bool))private leagueMembers;
     mapping(address => mapping(string => bytes32))private leaguesOwned; 
     
@@ -55,6 +56,10 @@ contract League{
         leagueMembers[msg.sender][key] = true;
         leagues[key].rewards = _rewards;
         leagues[key].members++;
+        leaderboards[key].members.push(msg.sender);
+    }
+       function ViewLeaderBoard(bytes32 _key)public view IsMember(_key)returns(LeaderBoard memory){
+        return leaderboards[_key];
     }
     function SetLeagueReward(uint _rewards,bytes32 _key)IsPlayer IsAdmin(_key) public{/////APPROVE WITH TRANSFERFROM UI
         IERC20 ifan = IERC20(fan);
@@ -88,6 +93,7 @@ contract League{
      leagues[_key].members++;
      leagueMembers[msg.sender][_key] = true;
      leaguesIN[msg.sender].push(_key);
+     leaderboards[_key].members.push(msg.sender);
     }
     function ViewLeague(bytes32 _key)IsPlayer IsMember(_key) public view returns(league memory){  
      return leagues[_key];
@@ -110,6 +116,7 @@ contract League{
      globalLeague.push(msg.sender);
      totalPlayers++;
      isPlayer[msg.sender] = true; 
+     globalLeaderboard[season].members.push(msg.sender);
     }
     function TotalPlayers()public view returns(uint){
         return totalPlayers;
@@ -117,5 +124,11 @@ contract League{
     function Global()public view returns(address[]memory){
         return globalLeague;
     }
+    function GlobalLeaderBoard()public view returns(LeaderBoard memory){
+        return globalLeaderboard[season];
+    }
+
+  
+ 
    
 }

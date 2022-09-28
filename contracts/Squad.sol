@@ -14,8 +14,11 @@ IERC20 ifan = IERC20(fan);
 require(swapped[msg.sender] == false,"You have already swapped");
 require(ifan.balanceOf(msg.sender) >= 1000,"Insufficient Balance");
 ifan.transferFrom(msg.sender,address(this),1000);
-_mint(msg.sender,100);
+_mint(msg.sender,200);
 swapped[msg.sender] = true;
+}
+function Balance()public view returns(uint){
+    return balanceOf(msg.sender);
 }
 }
 

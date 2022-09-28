@@ -18,11 +18,9 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
     Player[]Defenders;
     Player[]Midfielders;
     Player[]Fowards;
-   uint[]goalkeepers;
-   uint[]defenders;
-   uint[]midfielders;
-   uint[]fowards;
    mapping(uint => Player) public players;
+   mapping(uint => uint)public playerPrice;
+   mapping(uint => uint)public playerPosition;
    mapping(address => mapping(uint => uint))public GoalKeeperCount;
    mapping(address => mapping(uint => uint))public DefenderCount;
    mapping(address => mapping(uint => uint))public MidfielderCount;
@@ -67,6 +65,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
     {
         return super.tokenURI(_tokenId);
     }
+    modifier NotExist(uint _id){
+       require(playerPrice[_id] != 0,"Not Exist");
+       _;
+    }
     function MintPlayers(uint8 _position,uint8 _price,string memory _tokenURI)public{
     require(_position == 0 || _position == 1 || _position == 2 || _position == 3);
     require(_price != 0,"Input a price");
@@ -74,20 +76,21 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
     uint256 id = _tokenID.current();
     if(_position == 0){
       Goalkeepers.push(Player(Positions.Goalkeeper,id,_price,_tokenURI));
-      goalkeepers.push(id);
+      playerPosition[id] = 0;
     }
     else if(_position == 1){
       Defenders.push(Player(Positions.Defender,id,_price,_tokenURI));
-      defenders.push(id);
+      playerPosition[id] = 1;
     }
     else if(_position == 2){
       Midfielders.push(Player(Positions.Midfielder,id,_price,_tokenURI));
-      midfielders.push(id);
+      playerPosition[id] = 2;
     }
     else if(_position == 3){
       Fowards.push(Player(Positions.Foward,id,_price,_tokenURI));
-      fowards.push(id);
+      playerPosition[id] = 3;
     }
+    playerPrice[id] = _price;
    _mint(address(this),id);
    players[id] = Player(Positions(_position),id,_price,_tokenURI);
    _setTokenURI(id,_tokenURI);
@@ -114,61 +117,64 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
   return Fowards;
  }
 
- function SelectGoalkeeper(uint _id)public{
+ function SelectGoalkeeper(uint _id)public NotExist(_id){
+  require(playerPosition[_id] == 0 ,"Not a Goalkeeper");
   require(GoalKeeperCount[msg.sender][Classic] <= 1,"Exceeded Limit");
     for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
   if(MyTeam[msg.sender][Classic][j] == _id){
     revert("Already picked player");
   }
  }
-  for(uint i = 0;i < goalkeepers.length; i++){
-    if(goalkeepers[i] == _id){
+  for(uint i = 0;i < Goalkeepers.length; i++){
+   if(Goalkeepers[i].tokenID == _id){
       MyTeam[msg.sender][Classic].push(_id);
       _MyTeam[msg.sender][Classic].push(Player(Positions.Goalkeeper,_id,players[_id].price,players[_id].metadata));
     }
   }
    GoalKeeperCount[msg.sender][Classic]++; 
  }
- function SelectDefender(uint _id)public{
+ function SelectDefender(uint _id)public NotExist(_id){
+  require(playerPosition[_id] == 1,"Not a Defender");
   require(DefenderCount[msg.sender][Classic] <= 4,"Exceeded Limit");
      for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
   if(MyTeam[msg.sender][Classic][j] == _id){
     revert("Already picked player");
   }
  }
-  for(uint i = 0;i < defenders.length; i++){
-    if(defenders[i] == _id){
+  for(uint i = 0;i < Defenders.length; i++){
+     if(Defenders[i].tokenID == _id){
       MyTeam[msg.sender][Classic].push(_id);
       _MyTeam[msg.sender][Classic].push(Player(Positions.Defender,_id,players[_id].price,players[_id].metadata));
     }
   }
    DefenderCount[msg.sender][Classic]++;
  }
- function SelectMidfielder(uint _id)public{
+ function SelectMidfielder(uint _id)public NotExist(_id){
+  require(playerPosition[_id] == 2,"Not a Midfielder");
   require(MidfielderCount[msg.sender][Classic] <= 4,"Exceeded Limit");
      for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
   if(MyTeam[msg.sender][Classic][j] == _id){
     revert("Already picked player");
   }
  }
-  for(uint i = 0;i < midfielders.length; i++){
-    if(midfielders[i] == _id){
-
+  for(uint i = 0;i < Midfielders.length; i++){
+     if(Midfielders[i].tokenID == _id){
       MyTeam[msg.sender][Classic].push(_id);
       _MyTeam[msg.sender][Classic].push(Player(Positions.Midfielder,_id,players[_id].price,players[_id].metadata));
     }
   }
   MidfielderCount[msg.sender][Classic]++;
  }
- function SelectFoward(uint _id)public{
+ function SelectFoward(uint _id)public NotExist(_id){
+  require(playerPosition[_id] == 3,"Not a Foward");
   require(FowardCount[msg.sender][Classic] <= 2,"Exceeded Limit");
     for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
   if(MyTeam[msg.sender][Classic][j] == _id){
     revert("Already picked player");
   }
  }
-  for(uint i = 0;i < fowards.length; i++){
-    if(fowards[i] == _id){
+  for(uint i = 0;i < Fowards.length; i++){
+     if(Fowards[i].tokenID == _id){
       MyTeam[msg.sender][Classic].push(_id);
       _MyTeam[msg.sender][Classic].push(Player(Positions.Foward,_id,players[_id].price,players[_id].metadata));
     }

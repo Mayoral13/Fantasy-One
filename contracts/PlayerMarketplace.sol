@@ -1,16 +1,10 @@
 pragma solidity ^0.8.11;
-import "./ISquad.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-
-
-
  contract PlayerMarketplace is ERC721,ERC721URIStorage{
     address public SQUAD;
-    uint8 public Classic = 1;
-    uint8 public Weekend = 2;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenID;
     Player[]AllPlayers;
@@ -21,13 +15,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
    mapping(uint => Player) public players;
    mapping(uint => uint)public playerPrice;
    mapping(uint => uint)public playerPosition;
-   mapping(address => mapping(uint => uint))public GoalKeeperCount;
-   mapping(address => mapping(uint => uint))public DefenderCount;
-   mapping(address => mapping(uint => uint))public MidfielderCount;
-   mapping(address => mapping(uint => uint))public FowardCount;
-   mapping(address => mapping(uint => uint))public NetSpend;
-   mapping(address => mapping(uint => uint[]))private MyTeam;
-   mapping(address => mapping(uint => Player[]))private _MyTeam;
+   mapping(address => uint)public GoalKeeperCount;
+   mapping(address => uint)public DefenderCount;
+   mapping(address => uint)public MidfielderCount;
+   mapping(address => uint)public FowardCount;
+   mapping(address => uint)public NetSpend;
+   mapping(address => uint[])private MyTeam;
+   mapping(address => Player[])private _MyTeam;
    
 
     enum Positions{
@@ -116,74 +110,113 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
  function ViewAllFowards()public view returns(Player[]memory){
   return Fowards;
  }
+ modifier Expensive(){
+  require(NetSpend[msg.sender] <= 100,"Remove a player");
+  _;
+ }
+ modifier InSufficient(uint _id){
+  require(IERC20(SQUAD).balanceOf(msg.sender) >= playerPrice[_id],"Insufficient Balance");
+  _;
+ }
 
- function SelectGoalkeeper(uint _id)public NotExist(_id){
+ function SelectGoalkeeper(uint _id)public NotExist(_id) Expensive InSufficient(_id){
   require(playerPosition[_id] == 0 ,"Not a Goalkeeper");
-  require(GoalKeeperCount[msg.sender][Classic] <= 1,"Exceeded Limit");
-    for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
-  if(MyTeam[msg.sender][Classic][j] == _id){
+  require(GoalKeeperCount[msg.sender] <= 1,"Exceeded Limit");
+    for(uint j = 0; j < MyTeam[msg.sender].length; j++){
+  if(MyTeam[msg.sender][j] == _id){
     revert("Already picked player");
   }
  }
   for(uint i = 0;i < Goalkeepers.length; i++){
    if(Goalkeepers[i].tokenID == _id){
-      MyTeam[msg.sender][Classic].push(_id);
-      _MyTeam[msg.sender][Classic].push(Player(Positions.Goalkeeper,_id,players[_id].price,players[_id].metadata));
+    NetSpend[msg.sender] += playerPrice[_id];
+      IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[_id]);
+      MyTeam[msg.sender].push(_id);
+      _MyTeam[msg.sender].push(Player(Positions.Goalkeeper,_id,players[_id].price,players[_id].metadata));
     }
   }
-   GoalKeeperCount[msg.sender][Classic]++; 
+   GoalKeeperCount[msg.sender]++; 
  }
- function SelectDefender(uint _id)public NotExist(_id){
+ function SelectDefender(uint _id)public NotExist(_id) Expensive InSufficient(_id){
   require(playerPosition[_id] == 1,"Not a Defender");
-  require(DefenderCount[msg.sender][Classic] <= 4,"Exceeded Limit");
-     for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
-  if(MyTeam[msg.sender][Classic][j] == _id){
+  require(DefenderCount[msg.sender] <= 4,"Exceeded Limit");
+     for(uint j = 0; j < MyTeam[msg.sender].length; j++){
+  if(MyTeam[msg.sender][j] == _id){
     revert("Already picked player");
   }
  }
   for(uint i = 0;i < Defenders.length; i++){
      if(Defenders[i].tokenID == _id){
-      MyTeam[msg.sender][Classic].push(_id);
-      _MyTeam[msg.sender][Classic].push(Player(Positions.Defender,_id,players[_id].price,players[_id].metadata));
+      NetSpend[msg.sender] += playerPrice[_id];
+      IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[_id]);
+      MyTeam[msg.sender].push(_id);
+      _MyTeam[msg.sender].push(Player(Positions.Defender,_id,players[_id].price,players[_id].metadata));
     }
   }
-   DefenderCount[msg.sender][Classic]++;
+   DefenderCount[msg.sender]++;
  }
- function SelectMidfielder(uint _id)public NotExist(_id){
+ function SelectMidfielder(uint _id)public NotExist(_id) Expensive InSufficient(_id){
   require(playerPosition[_id] == 2,"Not a Midfielder");
-  require(MidfielderCount[msg.sender][Classic] <= 4,"Exceeded Limit");
-     for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
-  if(MyTeam[msg.sender][Classic][j] == _id){
+  require(MidfielderCount[msg.sender] <= 4,"Exceeded Limit");
+     for(uint j = 0; j < MyTeam[msg.sender].length; j++){
+  if(MyTeam[msg.sender][j] == _id){
     revert("Already picked player");
   }
  }
   for(uint i = 0;i < Midfielders.length; i++){
      if(Midfielders[i].tokenID == _id){
-      MyTeam[msg.sender][Classic].push(_id);
-      _MyTeam[msg.sender][Classic].push(Player(Positions.Midfielder,_id,players[_id].price,players[_id].metadata));
+      NetSpend[msg.sender] += playerPrice[_id];
+      IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[_id]);
+      MyTeam[msg.sender].push(_id);
+      _MyTeam[msg.sender].push(Player(Positions.Midfielder,_id,players[_id].price,players[_id].metadata));
     }
   }
-  MidfielderCount[msg.sender][Classic]++;
+  MidfielderCount[msg.sender]++;
  }
- function SelectFoward(uint _id)public NotExist(_id){
+ function SelectFoward(uint _id)public NotExist(_id) Expensive InSufficient(_id){
   require(playerPosition[_id] == 3,"Not a Foward");
-  require(FowardCount[msg.sender][Classic] <= 2,"Exceeded Limit");
-    for(uint j = 0; j < MyTeam[msg.sender][Classic].length; j++){
-  if(MyTeam[msg.sender][Classic][j] == _id){
+  require(FowardCount[msg.sender] <= 2,"Exceeded Limit");
+    for(uint j = 0; j < MyTeam[msg.sender].length; j++){
+  if(MyTeam[msg.sender][j] == _id){
     revert("Already picked player");
   }
  }
   for(uint i = 0;i < Fowards.length; i++){
      if(Fowards[i].tokenID == _id){
-      MyTeam[msg.sender][Classic].push(_id);
-      _MyTeam[msg.sender][Classic].push(Player(Positions.Foward,_id,players[_id].price,players[_id].metadata));
+      NetSpend[msg.sender] += playerPrice[_id];
+      IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[_id]);
+      MyTeam[msg.sender].push(_id);
+      _MyTeam[msg.sender].push(Player(Positions.Foward,_id,players[_id].price,players[_id].metadata));
     }
   }
-     FowardCount[msg.sender][Classic]++;
+     FowardCount[msg.sender]++;
  }
- function ViewClassicTeam()public view returns(Player[]memory){
-  return _MyTeam[msg.sender][Classic];
+ function ViewTeam()public view returns(Player[]memory){
+  return _MyTeam[msg.sender];
  }
- 
-
+ function RemovePlayer(uint _id) public NotExist(_id)returns(bool){
+ for(uint j = 0; j < MyTeam[msg.sender].length; j++){
+  if(MyTeam[msg.sender][j] == _id){
+   MyTeam[msg.sender].pop();
+   _MyTeam[msg.sender].pop();
+  }
+ }
+  if(playerPosition[_id] == 0){
+    NetSpend[msg.sender] -= playerPrice[_id];
+    GoalKeeperCount[msg.sender]--;
+  }
+  else if(playerPosition[_id] == 1){
+    NetSpend[msg.sender] -= playerPrice[_id];
+    DefenderCount[msg.sender]--;
+ }
+ else if(playerPosition[_id] == 2){
+    NetSpend[msg.sender] -= playerPrice[_id];
+    MidfielderCount[msg.sender]--;
+ }
+ else if(playerPosition[_id] == 3){
+    NetSpend[msg.sender] -= playerPrice[_id];
+    FowardCount[msg.sender]--;
+ }
+ return true;
 }
+ }

@@ -74,7 +74,6 @@ contract League{
     }
     function ClaimRewards(bytes32 _key)IsPlayer IsMember(_key) public{ //////////////////////////UNFINISHED PUT LEADERBOARD BROOOOO
         require(leagues[_key].rewardbalance >= leagues[_key].rewards);
-        //REQUIRE MAKE FIRST IN LEADERBOARD
         IERC20 ifan = IERC20(fan);
         leagues[_key].rewardbalance -= leagues[_key].rewards;
         ifan.transfer(msg.sender,leagues[_key].rewards);

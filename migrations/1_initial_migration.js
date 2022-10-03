@@ -15,6 +15,7 @@ module.exports = async (deployer) => {
   console.log("League Address is: ",League.address);
   console.log("Market Address is: ",player.address);
 
+
   /*
 Fan Address is:  0x8517b9d207dBC306453ca90D7C3dA01DfF157f76
 Squad Address is:  0xE88C866C6e7a69d6DB6292481dE0de8D90296aAd

@@ -3,9 +3,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
- contract PlayerMarketplace is Ownable,ERC1155{
+ contract PlayerMarketplace is Ownable,ERC1155,ERC1155Holder{
   address public SQUAD;
+  uint public DEADLINE;
   uint private divisor = 10;
    mapping(uint => Player)private players;
    mapping(uint => uint)private playerPrice;
@@ -43,7 +45,8 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
       }
     }
     }
-    function SelectTeam(uint[]memory id,uint[]memory position,uint[]memory amount)public{
+    function SelectSquad(uint[]memory id,uint[]memory position,uint[]memory amount)public{
+      require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(id.length == position.length,"Invalid Team size");
       require(id.length == 15,"Invalid Squad size"); 
       _safeBatchTransferFrom(address(this),msg.sender,id,amount,"");
@@ -52,7 +55,8 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
       }
     }
 
-    function SelectSquad(uint[]memory id,uint[]memory position,uint[]memory amount)public{
+    function SelectTeam(uint[]memory id,uint[]memory position,uint[]memory amount)public{
+      require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(id.length == 11,"Invalid Squad size");
       require(id.length ==position.length,"Invalid Squad Size");
        for(uint i = 0; i < MyTeam[msg.sender].length; i++){
@@ -92,6 +96,15 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
  function ViewTeam()public view returns(uint[]memory){
   require(MyTeam[msg.sender].length != 0,"No Team");
   return MyTeam[msg.sender]; 
-   
  }
+ function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155,ERC1155Receiver) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+    function SetDeadline(uint _time)public onlyOwner{
+      require(_time != 0);
+      DEADLINE = _time + block.timestamp;
+    }
+    function ViewSquadValue()public view returns(uint){
+      return NetSpend[msg.sender];
+    }
  }

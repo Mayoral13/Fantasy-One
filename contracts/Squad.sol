@@ -7,6 +7,7 @@ ERC20("SQUAD-TOKEN","SQD"){
     fan = _ifan;
 }
 address public fan;
+address public SquadTreasury;
 mapping(address => bool)private swapped;
 
 function Swap()public{//APPROVE TRANSFERFROM  UI

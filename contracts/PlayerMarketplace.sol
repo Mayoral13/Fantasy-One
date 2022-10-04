@@ -57,7 +57,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
         require(IERC20(SQUAD).balanceOf(msg.sender) >= playerPrice[id[i]]);
         NetSpend[msg.sender] += playerPrice[id[i]];
         MySquad[msg.sender].push(id[i]);
-        IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[id[i]]);
+       IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[id[i]]);
         OwnPlayer[msg.sender][id[i]] = true;
       }
     }
@@ -117,15 +117,18 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
     function RemovePlayer(uint _id)public{
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(OwnPlayer[msg.sender][_id] == true,"You do not own player");
-      for(uint i = 0; i < MyTeam[msg.sender].length; i++){
-      if(MyTeam[msg.sender][i] == _id){
-       MyTeam[msg.sender].pop();
+      require(MyTeam[msg.sender].length != 0,"No Squad");
+      (bool _isPlayer,uint256 i) = PositioninTeam(_id);{
+        if(_isPlayer){
+          MyTeam[msg.sender][i] = MyTeam[msg.sender][MyTeam[msg.sender].length - 1];
+          MyTeam[msg.sender].pop();
+        }
       }
-     }
     }
      function SelectPlayers(uint id)public{
       require(OwnPlayer[msg.sender][id] == true,"You do not own player");
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
+      require(MyTeam[msg.sender].length <= 10,"11 Players Fielded");
        for(uint i = 0; i < MyTeam[msg.sender].length; i++){
       if(MyTeam[msg.sender][i] == id){
        revert("Already picked player");
@@ -133,4 +136,29 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
      }
       MyTeam[msg.sender].push(id);
     }
+    function PositioninTeam(uint _id)public view returns(bool,uint256){
+       require(OwnPlayer[msg.sender][_id] == true,"You do not own player");
+       require(MyTeam[msg.sender].length != 0);
+     for(uint i = 0; i<MyTeam[msg.sender].length; i++){
+      if(_id == MyTeam[msg.sender][i])return(true,i);
+     }return (false,0);
+    }
+    function RevealFormation(uint[]memory id)public view returns(uint def,uint mid,uint fwd){
+      require(MyTeam[msg.sender].length == 11,"Incomplete Team");
+      require(MySquad[msg.sender].length == 15,"Incomplete Squad");
+      require(id.length == 11,"Set your Players IDs");
+      for(uint i = 0; i<id.length; i++){
+        require(OwnPlayer[msg.sender][id[i]] == true,"You do not own player");
+        if(players[id[i]].position == Positions.Defender){
+          def++;
+        }
+        if(players[id[i]].position == Positions.Midfielder){
+          mid++;
+        }
+         if(players[id[i]].position == Positions.Foward){
+          fwd++;
+        }
+      }
+      return (def,mid,fwd);
+    } 
  }

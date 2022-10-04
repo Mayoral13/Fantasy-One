@@ -5,13 +5,12 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract NFT is ERC721,ERC721URIStorage{
+contract POTWNFT is ERC721,ERC721URIStorage{
 
    using Counters for Counters.Counter;
    Counters.Counter private _tokenID;
    uint256 private royaltyFee;
    address private royaltyReciever;
-   address public Marketplace;
    address public owner;
    mapping(address => uint[])private tokenIDs;
    event Minted(address indexed _by,uint _tokenID);
@@ -19,12 +18,11 @@ contract NFT is ERC721,ERC721URIStorage{
    event RecieverChange(address indexed _by,address indexed _current);
 
    //Constructor to initialize NFT name, symbol and royalty fee
-   constructor(address _market,string memory _name,string memory _symbol,uint _fee,address payable _to)
+   constructor(string memory _name,string memory _symbol,uint _fee,address payable _to)
    ERC721(_name,_symbol){
     require(_fee <= 100,"cannot be more than 10%");
     royaltyFee = _fee;
     royaltyReciever = _to;
-    Marketplace = _market;
     owner = msg.sender;
    }
    modifier OnlyOwner(){

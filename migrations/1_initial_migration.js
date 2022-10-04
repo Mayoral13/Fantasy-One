@@ -2,6 +2,8 @@ const League = artifacts.require("League");
 const Fan = artifacts.require("Fan");
 const Squad = artifacts.require("Squad");
 const player = artifacts.require("PlayerMarketplace");
+const POTWNFT = artifacts.require("POTWNFT");
+const POTWMarket = artifacts.require("POTWMarket");
 
 module.exports = async (deployer) => {
   await deployer.deploy(Fan);
@@ -10,6 +12,10 @@ module.exports = async (deployer) => {
   await deployer.deploy(Squad,fanaddr);
   const squadaddr = Squad.address;
   await deployer.deploy(player,squadaddr);
+  await deployer.deploy(POTWNFT,"POTW-NFT","POTW",5,fanaddr);
+  await deployer.deploy(POTWMarket,5,fanaddr);
+  console.log("POTW NFT Address is: ",POTWNFT.address);
+  console.log("POTW Market Address is: ",POTWMarket.address);
   console.log("Fan Address is: ",fanaddr);
   console.log("Squad Address is: ",squadaddr);
   console.log("League Address is: ",League.address);

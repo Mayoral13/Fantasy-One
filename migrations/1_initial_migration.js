@@ -12,8 +12,9 @@ module.exports = async (deployer) => {
   await deployer.deploy(Squad,fanaddr);
   const squadaddr = Squad.address;
   await deployer.deploy(player,squadaddr);
-  await deployer.deploy(POTWNFT,"POTW-NFT","POTW",5,fanaddr);
-  await deployer.deploy(POTWMarket,5,fanaddr);
+  await deployer.deploy(POTWMarket,fanaddr);
+  const marketaddr = POTWMarket.address;
+  await deployer.deploy(POTWNFT,marketaddr);
   console.log("POTW NFT Address is: ",POTWNFT.address);
   console.log("POTW Market Address is: ",POTWMarket.address);
   console.log("Fan Address is: ",fanaddr);

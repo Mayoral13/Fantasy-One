@@ -1,6 +1,5 @@
 pragma solidity ^0.8.11;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
@@ -16,6 +15,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
    mapping(address => uint[])private MySquad;
    mapping(address => uint[])private MyTeam;
    mapping(address =>mapping(uint => bool))private OwnPlayer;
+   mapping(address =>mapping(uint => bool))private InTeam;
 
     enum Positions{
         Goalkeeper,
@@ -47,19 +47,31 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       }
     }
     }
-    function SelectSquad(uint[]memory id,uint[]memory position,uint[]memory amount)public{
+    function SelectSquad(uint id)public{
+      uint amount = 1;
+      require(OwnPlayer[msg.sender][id] == false,"You own player");
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
+      require(MySquad[msg.sender].length <= 14,"Limit reached");
       require(NetSpend[msg.sender] < 100,"Balance Exceeded");
-      require(id.length == position.length,"Invalid Team size");
-      require(id.length == 15,"Invalid Squad size"); 
-      _safeBatchTransferFrom(address(this),msg.sender,id,amount,"");
-      for(uint256 i = 0; i<id.length; i++){
-        require(IERC20(SQUAD).balanceOf(msg.sender) >= playerPrice[id[i]]);
-        NetSpend[msg.sender] += playerPrice[id[i]];
-        MySquad[msg.sender].push(id[i]);
-       IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[id[i]]);
-        OwnPlayer[msg.sender][id[i]] = true;
+        require(IERC20(SQUAD).balanceOf(msg.sender) >= playerPrice[id]);
+         _safeTransferFrom(address(this),msg.sender,id,amount,"");
+        NetSpend[msg.sender] += playerPrice[id];
+        MySquad[msg.sender].push(id);
+       IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[id]);
+        OwnPlayer[msg.sender][id] = true;
       }
+    
+      function SelectPlayers(uint id)public{
+      require(OwnPlayer[msg.sender][id] == true,"You do not own player");
+      require(block.timestamp > DEADLINE,"DEADLINE Passed");
+      require(MyTeam[msg.sender].length <= 10,"11 Players Fielded");
+       for(uint i = 0; i < MyTeam[msg.sender].length; i++){
+      if(MyTeam[msg.sender][i] == id){
+       revert("Already picked player");
+      }
+     }
+      MyTeam[msg.sender].push(id);
+      InTeam[msg.sender][id] = true;
     }
 
     function _SetPosition(uint _ID,uint _position,uint _price)internal{
@@ -89,10 +101,6 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
   require(players[_ID].price != 0);
   return players[_ID];
  }
- function ViewSquad()public view returns(uint[]memory){
-  require(MySquad[msg.sender].length != 0,"No Team");
-  return MySquad[msg.sender]; 
- }
  function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155,ERC1155Receiver) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
@@ -103,9 +111,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
     function ViewSquadValue()public view returns(uint){
       return NetSpend[msg.sender];
     }
-    function ViewTeam()public view returns(uint[]memory){
-     return MyTeam[msg.sender];
-    }
+   
     function SubmitTeam()public{
       uint id = 0;
       uint amount = 100;
@@ -124,17 +130,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
           MyTeam[msg.sender].pop();
         }
       }
-    }
-     function SelectPlayers(uint id)public{
-      require(OwnPlayer[msg.sender][id] == true,"You do not own player");
-      require(block.timestamp > DEADLINE,"DEADLINE Passed");
-      require(MyTeam[msg.sender].length <= 10,"11 Players Fielded");
-       for(uint i = 0; i < MyTeam[msg.sender].length; i++){
-      if(MyTeam[msg.sender][i] == id){
-       revert("Already picked player");
-      }
-     }
-      MyTeam[msg.sender].push(id);
+      InTeam[msg.sender][_id] = false;
     }
     function PositioninTeam(uint _id)public view returns(bool,uint256){
        require(OwnPlayer[msg.sender][_id] == true,"You do not own player");
@@ -161,4 +157,48 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       }
       return (def,mid,fwd);
     } 
+     function ViewTeam()public view returns(Player[]memory){
+      require(MyTeam[msg.sender].length == 11,"Pick 11 Players");
+      uint totalItemCountx = MySquad[msg.sender].length;
+        uint itemCountx = 0;
+        uint currentIndexx = 0;
+        for(uint i = 0; i<totalItemCountx; i++){
+          if(InTeam[msg.sender][i + 1] == true){
+            itemCountx+=1;
+          }
+        }
+        Player[]memory myteam = new Player[](itemCountx);
+        for(uint i = 0; i<totalItemCountx; i++){
+          if(InTeam[msg.sender][i + 1] == true){
+            uint currentIdx = i + 1;
+            Player storage currentitemsx = players[currentIdx];
+            myteam[currentIndexx] = currentitemsx;
+            currentIndexx += 1;
+          }
+        }
+        return myteam;
+    }
+     function ViewSquad()public view returns(Player[]memory){
+       require(MySquad[msg.sender].length != 0,"No Team");
+       uint totalItemCount = MySquad[msg.sender].length;
+        uint itemCount = 0;
+        uint currentIndex = 0;
+        uint currentId;
+        for(uint i = 0; i<totalItemCount; i++){
+          if(OwnPlayer[msg.sender][i + 1] == true){
+            itemCount +=1;
+          }
+        }
+        Player[]memory mysquad = new Player[](itemCount);
+        for(uint i = 0; i<totalItemCount; i++){
+          if(OwnPlayer[msg.sender][i + 1] == true){
+            currentId +=1;
+            Player storage currentitems = players[currentId];
+            mysquad[currentIndex] = currentitems;
+            currentIndex += 1;
+          }
+        }
+        return mysquad;
+ }
+  
  }

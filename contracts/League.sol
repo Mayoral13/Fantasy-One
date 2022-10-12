@@ -126,6 +126,7 @@ contract League{
     function GlobalLeaderBoard()public view returns(LeaderBoard memory){
         return globalLeaderboard[season];
     }
+  
     
 
   

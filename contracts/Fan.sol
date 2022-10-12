@@ -5,16 +5,16 @@ contract Fan is ERC20,Ownable{
     uint private Circulation;    
 constructor()
 ERC20("FAN-TOKEN","FAN"){
-    _mint(address(this),100000);
+    _mint(address(this),1000000);
 }
     function ShowOwner()external view returns(address){
         return owner;
     }
 
-    function RequestTokens(uint _amount)external returns(bool success){
-        require(_amount < VendorBalance(),"Exceeded Limit");
-        _transfer(address(this),msg.sender,_amount);
-        Circulation = Circulation + (_amount);
+    function RequestTokens()external returns(bool success){
+        uint amount = 1500;
+        _transfer(address(this),msg.sender,amount);
+        Circulation = Circulation + (amount);
         return true;
     }
 

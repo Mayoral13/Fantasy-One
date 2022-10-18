@@ -16,6 +16,8 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
    mapping(address => uint[])private MyTeam;
    mapping(address =>mapping(uint => bool))private OwnPlayer;
    mapping(address =>mapping(uint => bool))private InTeam;
+   event playerSelected(uint id);
+   event teamSubmitted(uint when,address who);
 
     enum Positions{
         Goalkeeper,
@@ -64,7 +66,6 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       function SelectPlayers(uint id)public{
       require(OwnPlayer[msg.sender][id] == true,"You do not own player");
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
-      require(MyTeam[msg.sender].length <= 10,"11 Players Fielded");
        for(uint i = 0; i < MyTeam[msg.sender].length; i++){
       if(MyTeam[msg.sender][i] == id){
        revert("Already picked player");
@@ -72,6 +73,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
      }
       MyTeam[msg.sender].push(id);
       InTeam[msg.sender][id] = true;
+      emit playerSelected(id);
     }
 
     function _SetPosition(uint _ID,uint _position,uint _price)internal{
@@ -116,9 +118,10 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       uint id = 0;
       uint amount = 100;
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
-      require(MyTeam[msg.sender].length == 11,"Incomplete Team");
+      require(MyTeam[msg.sender].length >= 10,"Incomplete Team");
       require(MySquad[msg.sender].length == 15,"Incomplete Squad");
      _mint(msg.sender,id,amount,"Baller Rewards");
+     emit teamSubmitted(block.timestamp,msg.sender);
     }
     function RemovePlayer(uint _id)public{
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
@@ -179,6 +182,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
         return myteam;
     }
      function ViewSquad()public view returns(Player[]memory){
+      require(MyTeam[msg.sender].length == 15,"Pick 15 Players");
        require(MySquad[msg.sender].length != 0,"No Team");
        uint totalItemCount = MySquad[msg.sender].length;
         uint itemCount = 0;

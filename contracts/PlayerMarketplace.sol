@@ -16,6 +16,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
    mapping(address => uint[])private MyTeam;
    mapping(address =>mapping(uint => bool))private OwnPlayer;
    mapping(address =>mapping(uint => bool))private InTeam;
+   event playerRemoved(uint id);
    event playerSelected(uint id);
    event teamSubmitted(uint when,address who);
 
@@ -68,7 +69,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
        for(uint i = 0; i < MyTeam[msg.sender].length; i++){
       if(MyTeam[msg.sender][i] == id){
-       revert("Already picked player");
+       _RemovePlayer(id);
       }
      }
       MyTeam[msg.sender].push(id);
@@ -116,14 +117,14 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
    
     function SubmitTeam()public{
       uint id = 0;
-      uint amount = 100;
+      uint amount = 10;
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(MyTeam[msg.sender].length >= 10,"Incomplete Team");
       require(MySquad[msg.sender].length == 15,"Incomplete Squad");
      _mint(msg.sender,id,amount,"Baller Rewards");
      emit teamSubmitted(block.timestamp,msg.sender);
     }
-    function RemovePlayer(uint _id)public{
+    function _RemovePlayer(uint _id)internal{
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(OwnPlayer[msg.sender][_id] == true,"You do not own player");
       require(MyTeam[msg.sender].length != 0,"No Squad");
@@ -134,6 +135,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
         }
       }
       InTeam[msg.sender][_id] = false;
+      emit playerRemoved(_id);
     }
     function PositioninTeam(uint _id)public view returns(bool,uint256){
        require(OwnPlayer[msg.sender][_id] == true,"You do not own player");
@@ -142,8 +144,9 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       if(_id == MyTeam[msg.sender][i])return(true,i);
      }return (false,0);
     }
+    /*
     function RevealFormation(uint[]memory id)public view returns(uint def,uint mid,uint fwd){
-      require(MyTeam[msg.sender].length == 11,"Incomplete Team");
+      require(MyTeam[msg.sender].length >=10,"Incomplete Team");
       require(MySquad[msg.sender].length == 15,"Incomplete Squad");
       require(id.length == 11,"Set your Players IDs");
       for(uint i = 0; i<id.length; i++){
@@ -160,8 +163,10 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       }
       return (def,mid,fwd);
     } 
+    */
+    /*
      function ViewTeam()public view returns(Player[]memory){
-      require(MyTeam[msg.sender].length == 11,"Pick 11 Players");
+      require(MyTeam[msg.sender].length >= 10,"Pick 11 Players");
       uint totalItemCountx = MySquad[msg.sender].length;
         uint itemCountx = 0;
         uint currentIndexx = 0;
@@ -181,6 +186,8 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
         }
         return myteam;
     }
+    */
+    
      function ViewSquad()public view returns(Player[]memory){
       require(MyTeam[msg.sender].length == 15,"Pick 15 Players");
        require(MySquad[msg.sender].length != 0,"No Team");

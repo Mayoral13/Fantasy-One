@@ -3,11 +3,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
  contract PlayerMarketplace is Ownable,ERC1155,ERC1155Holder{
   address public SQUAD;
   uint public DEADLINE;
   uint private divisor = 10;
+    mapping (uint256 => string) private _uris;
    mapping(uint => Player)private players;
    mapping(uint => uint)private playerPrice;
    mapping(uint => bool)private PositionSet;
@@ -33,10 +35,19 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
   }
   
     constructor(address _squad)
-    ERC1155("SET THIS"){
+    ERC1155("https://gateway.pinata.cloud/ipfs/QmNktTRfCjjiEAvmHxqw4UnZhJ25mjmqxwrbrGNAp5yD81/{id}.json"){
  
       SQUAD = _squad;
     }
+    function uri(uint256 tokenId) override public view returns (string memory) {
+        return(_uris[tokenId]);
+    }
+    
+    function setTokenUri(uint256 tokenId, string memory _uri) public onlyOwner {
+        require(bytes(_uris[tokenId]).length == 0, "Cannot set uri twice"); 
+        _uris[tokenId] = _uri; 
+    }
+
 
     function MintPlayers(uint[]memory id,uint[] memory position,uint[] memory amount,uint[]memory price)onlyOwner public{
     require(id.length == position.length,"Invalid Team Size");
@@ -60,8 +71,9 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
          _safeTransferFrom(address(this),msg.sender,id,amount,"");
         NetSpend[msg.sender] += playerPrice[id];
         MySquad[msg.sender].push(id);
-       IERC20(SQUAD).transferFrom(msg.sender,address(this),playerPrice[id]);
+       IERC20(SQUAD).transferFrom(msg.sender,address(this),(playerPrice[id] * (10 ** 18)));
         OwnPlayer[msg.sender][id] = true;
+        emit playerSelected(id);
       }
     
       function SelectPlayers(uint id)public{
@@ -112,16 +124,16 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
       DEADLINE = _time + block.timestamp;
     }
     function ViewSquadValue()public view returns(uint){
-      return NetSpend[msg.sender];
+      return NetSpend[msg.sender]; 
     }
    
     function SubmitTeam()public{
       uint id = 0;
-      uint amount = 10;
+      uint amount = 50;
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(MyTeam[msg.sender].length >= 10,"Incomplete Team");
       require(MySquad[msg.sender].length == 15,"Incomplete Squad");
-     _mint(msg.sender,id,amount,"Baller Rewards");
+     _mint(msg.sender,id,(amount * (10 ** (18))),"Baller Rewards");
      emit teamSubmitted(block.timestamp,msg.sender);
     }
     function _RemovePlayer(uint _id)internal{
@@ -189,8 +201,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
     */
     
      function ViewSquad()public view returns(Player[]memory){
-      require(MyTeam[msg.sender].length == 15,"Pick 15 Players");
-       require(MySquad[msg.sender].length != 0,"No Team");
+       require(MySquad[msg.sender].length == 15,"Add 15 Players to Squad");
        uint totalItemCount = MySquad[msg.sender].length;
         uint itemCount = 0;
         uint currentIndex = 0;
@@ -211,5 +222,8 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
         }
         return mysquad;
  }
-  
  }
+ 
+
+  
+ 

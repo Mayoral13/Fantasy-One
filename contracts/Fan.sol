@@ -5,7 +5,7 @@ contract Fan is ERC20,Ownable{
     uint private Circulation;    
 constructor()
 ERC20("FAN-TOKEN","FAN"){
-    _mint(address(this),1000000);
+    _mint(address(this),(1000000 * (10 ** 18)));
 }
     function ShowOwner()external view returns(address){
         return owner;
@@ -13,7 +13,7 @@ ERC20("FAN-TOKEN","FAN"){
 
     function RequestTokens()external returns(bool success){
         uint amount = 1500;
-        _transfer(address(this),msg.sender,amount);
+        _transfer(address(this),msg.sender,(amount * (10 ** 18)));
         Circulation = Circulation + (amount);
         return true;
     }
@@ -28,6 +28,6 @@ ERC20("FAN-TOKEN","FAN"){
         return balanceOf(msg.sender);
     }
     function MintTokens(uint _amount)onlyOwner public{
-        _mint(address(this),_amount);
+        _mint(address(this),(_amount*(10 ** 18)));
     }
 }

@@ -11,10 +11,11 @@ address public SquadTreasury;
 mapping(address => bool)private swapped;
 
 function Swap()public{//APPROVE TRANSFERFROM  UI
+uint amount = 1000;
 IERC20 ifan = IERC20(fan);
 require(swapped[msg.sender] == false,"You have already swapped");
-require(ifan.balanceOf(msg.sender) >= 1000,"Insufficient Balance");
-ifan.transferFrom(msg.sender,address(this),(1000 * (10 ** 18)));
+require(ifan.balanceOf(msg.sender) >= amount,"Insufficient Balance");
+ifan.transfer(address(this),amount);
 _mint(msg.sender,(100 * (10 ** 18)));
 swapped[msg.sender] = true;
 }

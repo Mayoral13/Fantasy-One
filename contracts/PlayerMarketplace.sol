@@ -62,16 +62,17 @@ import "@openzeppelin/contracts/utils/Strings.sol";
     }
     }
     function SelectSquad(uint id)public{
+      uint price = playerPrice[id];
       uint amount = 1;
       require(OwnPlayer[msg.sender][id] == false,"You own player");
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
       require(MySquad[msg.sender].length <= 14,"Limit reached");
       require(NetSpend[msg.sender] < 100,"Balance Exceeded");
-        require(IERC20(SQUAD).balanceOf(msg.sender) >= playerPrice[id]);
+        require(IERC20(SQUAD).balanceOf(msg.sender) >= price);
          _safeTransferFrom(address(this),msg.sender,id,amount,"");
-        NetSpend[msg.sender] += playerPrice[id];
+        NetSpend[msg.sender] += price;
         MySquad[msg.sender].push(id);
-       IERC20(SQUAD).transferFrom(msg.sender,address(this),(playerPrice[id] * (10 ** 18)));
+       IERC20(SQUAD).transfer(address(this),price);
         OwnPlayer[msg.sender][id] = true;
         emit playerSelected(id);
       }

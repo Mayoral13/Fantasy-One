@@ -69,7 +69,7 @@ contract League{
         require(ifan.balanceOf(msg.sender) >= _rewards,"Insufficient Balance");
         require(leagues[_key].rewards != 0,"Change rewards first");
         require(_rewards >= leagues[_key].rewards,"Rewards must be greater than set");
-        ifan.transfer(address(this),(_rewards));
+        ifan.transferFrom(msg.sender,address(this),(_rewards));
         leagues[_key].rewardbalance += _rewards;
     }
     function ChangeLeagueReward(uint _rewards,bytes32 _key)IsPlayer IsAdmin(_key) public{

@@ -72,7 +72,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
          _safeTransferFrom(address(this),msg.sender,id,amount,"");
         NetSpend[msg.sender] += price;
         MySquad[msg.sender].push(id);
-       IERC20(SQUAD).transfer(address(this),price);
+       IERC20(SQUAD).transferFrom(msg.sender,address(this),price);
         OwnPlayer[msg.sender][id] = true;
         emit playerSelected(id);
       }

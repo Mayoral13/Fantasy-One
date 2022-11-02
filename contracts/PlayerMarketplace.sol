@@ -77,10 +77,10 @@ import "@openzeppelin/contracts/utils/Strings.sol";
         emit playerSelected(id);
       }
     
-      function SelectPlayers(uint id)public{
+      function SelectPlayers(uint id)public view returns(bool){
       require(OwnPlayer[msg.sender][id] == true,"You do not own player");
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
-       for(uint i = 0; i < MyTeam[msg.sender].length; i++){
+      /* for(uint i = 0; i < MyTeam[msg.sender].length; i++){
       if(MyTeam[msg.sender][i] == id){
        _RemovePlayer(id);
       }
@@ -88,6 +88,8 @@ import "@openzeppelin/contracts/utils/Strings.sol";
       MyTeam[msg.sender].push(id);
       InTeam[msg.sender][id] = true;
       emit playerSelected(id);
+      */
+     return OwnPlayer[msg.sender][id];
     }
 
     function _SetPosition(uint _ID,uint _position,uint _price)internal{
@@ -132,9 +134,8 @@ import "@openzeppelin/contracts/utils/Strings.sol";
       uint id = 0;
       uint amount = 50;
       require(block.timestamp > DEADLINE,"DEADLINE Passed");
-      require(MyTeam[msg.sender].length >= 10,"Incomplete Team");
       require(MySquad[msg.sender].length == 15,"Incomplete Squad");
-     _mint(msg.sender,id,(amount * (10 ** (18))),"Baller Rewards");
+     _mint(msg.sender,id,(amount ),"Baller Rewards");
      emit teamSubmitted(block.timestamp,msg.sender);
     }
     function _RemovePlayer(uint _id)internal{
